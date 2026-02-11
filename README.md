@@ -1,7 +1,6 @@
 CI/CD Pipeline
 Zero-Downtime Blue-Green Deployment on AWS
 1. Overview
-
 This repository demonstrates an end-to-end automated CI/CD pipeline implementing zero-downtime deployment using the Blue-Green strategy.
 
 The system builds a Docker image, pushes it to Docker Hub, deploys to an AWS EC2 instance, and dynamically switches traffic using Nginx without interrupting active users.
