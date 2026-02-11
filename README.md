@@ -1,175 +1,255 @@
 CI/CD Pipeline with Zero-Downtime Blue-Green Deployment
-Problem
-Modern applications require continuous delivery without impacting user experience. Traditional deployments introduce downtime because the existing service is stopped before the new version starts.
+Overview
 
-The problem addressed in this project:
+This project demonstrates an end-to-end automated CI/CD pipeline implementing zero-downtime deployment using the Blue-Green strategy.
 
-Automate the build and deployment process
+The pipeline builds a Docker image, pushes it to Docker Hub, deploys it to an AWS EC2 instance, and switches traffic via Nginx without interrupting active users.
 
-Eliminate downtime during releases
+The objective is to simulate a production-grade deployment workflow focusing on release safety, automation, and infrastructure reliability.
 
-Ensure safe rollout of new versions
+Problem Statement
 
-Securely manage deployment credentials
+Traditional deployment strategies introduce downtime by stopping the currently running application before starting the new version.
 
-Enable quick rollback if failure occurs
+This project addresses the following challenges:
+
+Automating build and deployment workflows
+
+Eliminating service downtime during releases
+
+Safely switching between application versions
+
+Managing secrets securely
+
+Handling common infrastructure-level failure scenarios
+
+Technology Stack
+
+Node.js
+
+Docker
+
+Docker Hub
+
+AWS EC2 (Ubuntu)
+
+Nginx (Reverse Proxy)
+
+GitHub Actions
+
+Blue-Green Deployment Strategy
+
 Architecture
 High-Level Flow
 
-Developer pushes code to GitHub.
+Developer pushes code to the main branch.
 
-GitHub Actions triggers CI/CD pipeline.
+GitHub Actions triggers the CI/CD workflow.
 
-Docker image is built for linux/amd64.
+Docker image is built for linux/amd64 architecture.
 
 Image is pushed to Docker Hub.
 
 GitHub Actions connects to EC2 via SSH.
 
-New container (Green) is deployed.
+A new container (Green) is started on a separate port.
 
-Nginx switches traffic to new container.
+Nginx switches traffic to the new container.
 
-Old container (Blue) is stopped and removed.
+The old container (Blue) is stopped and removed.
+
+Architecture Diagram
 flowchart LR
 
 Developer -->|Push Code| GitHub
 GitHub -->|Trigger Workflow| GitHubActions
-GitHubActions -->|Build Image| DockerHub
+GitHubActions -->|Build Docker Image| DockerHub
 GitHubActions -->|SSH Deploy| EC2
 
 User -->|HTTP Request| Nginx
-Nginx -->|Proxy| BlueContainer
+Nginx -->|Reverse Proxy| BlueContainer
 Nginx -->|Switch Traffic| GreenContainer
-Design Decisions
-1.Blue-Green Deployment Strategy
 
-Chosen to:
+CI/CD Workflow
 
-Avoid downtime
+The CI/CD pipeline is defined using GitHub Actions.
 
-Enable instant traffic switching
+Workflow Steps
 
-Reduce deployment risk
+Checkout source code
 
-Instead of stopping the live container, a new container is started on a different port and traffic is switched only after successful startup.
-2.Dockerized Application
+Authenticate with Docker Hub
 
-Reasons:
+Build Docker image for linux/amd64
 
-Environment consistency
+Push image to Docker Hub
 
-Easy portability
+SSH into EC2 instance
 
-Simplified production deployment
-3.GitHub Actions for CI/CD
+Execute deployment script
 
-Selected because:
+Start new container
 
-Native GitHub integration
+Switch Nginx traffic
 
-Easy secret management
+Remove old container
 
-No additional infrastructure required
-4.Nginx as Reverse Proxy
+Deployment is automated and triggered on every push to the main branch.
 
-Used to:
+Blue-Green Deployment Strategy
 
-Route traffic dynamically
+Two application environments are maintained:
 
-Switch between Blue and Green
+Blue (currently live)
 
-Prepare for future HTTPS support
-Failure Scenarios
-Scenario 1: Docker Image Pull Failure
+Green (new version)
 
-Cause: Image not available or wrong tag
+The deployment process:
 
-Impact: Deployment stops
+Detect currently active container.
 
-Mitigation: set -e in deploy.sh prevents unsafe switch
+Start new container on alternate port.
 
-Scenario 2: New Container Fails to Start
+Wait for container readiness.
 
-Cause: Code crash, port conflict
+Switch Nginx proxy configuration.
 
-Impact: Potential traffic issue
+Stop and remove old container.
 
-Mitigation: Nginx switch happens only after container runs
+This ensures continuous availability during deployment.
 
-Scenario 3: EC2 SSH Failure
+Secrets Management
 
-Cause: Invalid key or network issue
+Sensitive credentials are stored securely using GitHub Actions Secrets:
 
-Impact: Deployment blocked
+DOCKER_USERNAME
 
-Mitigation: Secure SSH keys via GitHub Secrets
+DOCKER_PASSWORD
 
-Scenario 4: Architecture Mismatch (arm64 vs amd64)
+EC2_HOST
 
-Cause: Built on Apple Silicon
+EC2_USER
 
-Mitigation: Used docker buildx --platform linux/amd64
-Monitoring (Current & Future Scope)
-Current Monitoring
+EC2_KEY
 
-Manual container validation using:
+No credentials are committed to the repository.
 
-docker ps
+Project Structure
+.
+├── Dockerfile
+├── deploy.sh
+├── index.js
+├── package.json
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+└── README.md
 
-curl
+Deployment Script Logic
 
-docker logs
+The deployment script performs:
 
-Nginx status verification
-Future Improvements
-Health check endpoint /health
+Image pull from Docker Hub
 
-Prometheus + Grafana integration
+Live container detection
 
-Auto rollback on health failure
+Alternate container startup
 
-Log aggregation
+Nginx port switching
 
-Cost Optimization
+Old container cleanup
 
-This project is designed with minimal infrastructure cost:
+The script uses set -e to prevent unsafe deployments in case of failure.
 
-Single EC2 instance (no load balancer)
+Failure Scenarios Considered
+Docker Image Pull Failure
 
-Docker-based deployment (no Kubernetes overhead)
+Mitigation: Deployment stops immediately due to strict error handling.
+
+Container Startup Failure
+
+Mitigation: Traffic switch occurs only after container startup.
+
+Architecture Mismatch (arm64 vs amd64)
+
+Mitigation: Docker image built using buildx with explicit linux/amd64 platform.
+
+SSH Authentication Failure
+
+Mitigation: Secure key handling via GitHub Secrets.
+
+Monitoring and Validation
+
+Current validation approach:
+
+docker ps for container verification
+
+curl for application response testing
+
+docker logs for debugging
+
+nginx -t for configuration validation
+
+Future improvements may include:
+
+Health check endpoint
+
+Automated rollback
+
+Prometheus and Grafana integration
+
+Centralized logging
+
+Cost Considerations
+
+The architecture is intentionally minimal to reduce operational cost:
+
+Single EC2 instance
+
+No load balancer
+
+No container orchestration layer
 
 GitHub Actions free tier
 
-Open-source tooling (Nginx, Docker)
+Open-source reverse proxy
 
-Estimated monthly cost:
+Designed to run within AWS Free Tier limits.
 
-EC2 t2.micro / t3.micro (Free Tier eligible)
-Learnings
+How to Run Locally
 
-This project helped understand:
+Build and run locally using Docker:
 
-CI/CD pipeline automation
+docker build -t myapp .
+docker run -p 3000:3000 myapp
 
-Blue-Green deployment mechanics
 
-Zero-downtime release engineering
+Access locally at:
 
-Secure secret management
+http://localhost:3000
 
-Docker multi-architecture builds
+Production Access
 
-Reverse proxy traffic switching
+Application is served via Nginx on:
 
-Infrastructure debugging in real cloud environment
+http://<ec2-public-ip>
 
-It also exposed real-world issues such as:
+Key Learnings
 
-Manifest architecture mismatch
+Implementing automated CI/CD pipelines
 
-Nginx misconfiguration
+Designing zero-downtime deployment strategies
 
-Inbound security rule setup
+Managing secrets securely in CI environments
 
-SSH key permission handling
+Handling Docker multi-architecture builds
+
+Configuring reverse proxy routing
+
+Debugging infrastructure-level issues in cloud environments
+
+Conclusion
+
+This project demonstrates a production-oriented CI/CD workflow implementing Blue-Green zero-downtime deployment using Docker, GitHub Actions, AWS EC2, and Nginx.
+
+It reflects a strong understanding of automation, release engineering, infrastructure configuration, and deployment safety principles.
