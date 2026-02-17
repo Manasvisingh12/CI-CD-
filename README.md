@@ -1,255 +1,65 @@
-CI/CD Pipeline
-Zero-Downtime Blue-Green Deployment on AWS
-1. Overview
-This repository demonstrates an end-to-end automated CI/CD pipeline implementing zero-downtime deployment using the Blue-Green strategy.
+<h1 align="center">
+🚀 Zero-Downtime Blue-Green Deployment on AWS
+</h1>
 
-The system builds a Docker image, pushes it to Docker Hub, deploys to an AWS EC2 instance, and dynamically switches traffic using Nginx without interrupting active users.
+<h3 align="center">
+⚡ Production-Grade CI/CD Pipeline with Docker, Nginx & GitHub Actions
+</h3>
 
-The focus of this project is production-safe deployment automation.
+<p align="center">
+<img src="https://img.shields.io/badge/Deployment-Blue--Green-blue?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/CI/CD-GitHub%20Actions-black?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Container-Docker-blue?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Cloud-AWS-orange?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Proxy-Nginx-green?style=for-the-badge"/>
+</p>
 
-Problem
+---
 
-Traditional deployment approaches introduce downtime by stopping the running service before starting a new version.
+## 📌 Project Overview
 
-This project solves the following:
+> 💡 **Production-safe deployment pipeline implementing ZERO downtime deployments using Blue-Green Strategy**
 
-Eliminate downtime during deployments
+This project demonstrates a **fully automated CI/CD workflow** that:
 
-Automate build and release workflows
+✨ Builds Docker images  
+✨ Pushes images to Docker Hub  
+✨ Deploys automatically to AWS EC2  
+✨ Switches traffic dynamically using Nginx  
+✨ Ensures uninterrupted user experience  
 
-Securely manage infrastructure credentials
+---
 
-Safely switch between application versions
+## ❌ The Problem
 
-Reduce deployment risk
+Traditional deployments often:
 
-Architecture
-High-Level Flow
+- Stop running services
+- Cause downtime
+- Risk breaking production
+- Require manual intervention
 
-Developer pushes code to the main branch
+---
 
-GitHub Actions triggers CI/CD workflow
+## ✅ The Solution
 
-Docker image is built for linux/amd64
+This pipeline provides:
 
-Image is pushed to Docker Hub
+🟢 Zero downtime deployments  
+🔐 Secure infrastructure credential handling  
+⚙️ Fully automated build & release workflow  
+🔁 Instant rollback capability  
+📦 Consistent containerized environment  
 
-SSH connection established to EC2
+---
 
-New container is deployed
+# 🏗 Architecture
 
-Nginx switches traffic
+---
 
-Old container is removed
+## 🔄 High Level Flow
 
-Architecture Diagram
-flowchart LR
 
-Developer -->|Push Code| GitHub
-GitHub -->|Trigger Workflow| GitHubActions
-GitHubActions -->|Build Image| DockerHub
-GitHubActions -->|SSH Deploy| EC2
-
-User -->|HTTP Request| Nginx
-Nginx -->|Proxy Traffic| BlueContainer
-Nginx -->|Switch Traffic| GreenContainer
-
-Technology Stack
-Application Layer
-
-Node.js
-
-Containerization
-
-Docker
-
-Docker Hub
-
-Infrastructure
-
-AWS EC2 (Ubuntu)
-
-Reverse Proxy
-
-Nginx
-
-CI/CD
-
-GitHub Actions
-
-CI/CD Workflow
-Continuous Integration
-
-Source checkout
-
-Docker login
-
-Multi-architecture image build
-
-Image push to Docker Hub
-
-Continuous Deployment
-
-SSH to EC2
-
-Execute deployment script
-
-Start alternate container
-
-Switch Nginx traffic
-
-Remove old container
-
-Deployment is automatically triggered on every push to main.
-
-Blue-Green Deployment Strategy
-
-Two application environments are maintained:
-
-Blue Environment
-
-Currently serving production traffic.
-
-Green Environment
-
-New application version being deployed.
-
-Deployment sequence:
-
-Detect active container
-
-Start new container on alternate port
-
-Validate startup
-
-Update Nginx configuration
-
-Stop previous container
-
-This ensures uninterrupted service availability.
-
-Design Decisions
-Why Blue-Green Instead of Rolling Deployment?
-
-Simpler to implement on a single EC2 instance
-
-Instant traffic switching
-
-Easier rollback
-
-Why Nginx?
-
-Lightweight reverse proxy
-
-Simple port-based routing
-
-Easy traffic switching
-
-Why Docker?
-
-Environment consistency
-
-Easy portability
-
-Simplified dependency management
-
-Failure Scenarios
-Docker Image Pull Failure
-
-Deployment stops immediately using strict script error handling.
-
-Container Startup Failure
-
-Traffic is not switched until container runs successfully.
-
-Architecture Mismatch (ARM vs AMD)
-
-Resolved using docker buildx --platform linux/amd64.
-
-SSH Authentication Failure
-
-Handled securely using GitHub Actions secrets.
-
-Monitoring and Validation
-
-Current validation methods:
-
-docker ps
-
-curl
-
-docker logs
-
-nginx -t
-
-Planned improvements:
-
-Health check endpoint
-
-Automated rollback logic
-
-Metrics collection
-
-Centralized logging
-
-Cost Optimization
-
-This architecture is intentionally lightweight:
-
-Single EC2 instance
-
-No load balancer
-
-No orchestration layer
-
-GitHub Actions free tier
-
-Open-source tooling
-
-Designed to operate within AWS Free Tier limits.
-
-Project Structure
-.
-├── Dockerfile
-├── deploy.sh
-├── index.js
-├── package.json
-├── .github/
-│   └── workflows/
-│       └── deploy.yml
-└── README.md
-
-Local Setup
-
-Build and run locally:
-
-docker build -t myapp .
-docker run -p 3000:3000 myapp
-
-
-Access locally:
-
-http://localhost:3000
-
-Production Access
-
-Application is accessible via:
-
-http://<ec2-public-ip>
-
-Key Learnings
-
-CI/CD automation principles
-
-Zero-downtime deployment strategies
-
-Docker multi-architecture builds
-
-Reverse proxy configuration
-
-Secure secret handling
-
-Infrastructure debugging in cloud environments
 
 Conclusion
 
